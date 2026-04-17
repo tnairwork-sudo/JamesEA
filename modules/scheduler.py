@@ -7,7 +7,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 
-from database.models import FamilyEvent, Meeting
+from database.models import Draft, FamilyEvent, Meeting
 from modules import claude_handler
 from modules.gmail_handler import gmail_handler
 from modules.meeting_handler import send_guest_reminder, send_pre_meeting_brief
@@ -63,7 +63,14 @@ def run_guest_reminders() -> None:
 
 
 def run_urgent_escalation() -> None:
-    make_call(os.getenv("TUSHAAR_WHATSAPP", ""))
+    threshold = datetime.utcnow() - timedelta(minutes=15)
+    urgent_pending = (
+        Draft.query.filter(Draft.status == "urgent", Draft.created_at <= threshold)
+        .order_by(Draft.created_at.asc())
+        .first()
+    )
+    if urgent_pending:
+        make_call(os.getenv("TUSHAAR_WHATSAPP", ""))
 
 
 def start_scheduler() -> None:
