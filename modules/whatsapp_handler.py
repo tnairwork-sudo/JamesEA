@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 
 from twilio.rest import Client
@@ -5,14 +7,12 @@ from twilio.rest import Client
 from database import db
 from database.models import MessageLog
 
-
 def _twilio_client() -> Client | None:
     sid = os.getenv("TWILIO_ACCOUNT_SID")
     token = os.getenv("TWILIO_AUTH_TOKEN")
     if not sid or not token:
         return None
     return Client(sid, token)
-
 
 def send_whatsapp(to: str, body: str) -> bool:
     client = _twilio_client()
@@ -28,7 +28,6 @@ def send_whatsapp(to: str, body: str) -> bool:
     except Exception:
         db.session.rollback()
         return False
-
 
 def make_call(to: str) -> bool:
     client = _twilio_client()
