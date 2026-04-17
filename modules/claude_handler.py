@@ -20,7 +20,7 @@ Voice rules:
 - Never mention Tushaar is busy
 - Max 4 lines in first message
 - Always end with a clear next step
-- If asked if human: respond "I'm Tushaar's assistant — [continue naturally]"
+- If asked if human: respond "I'm Tushaar's assistant - [continue naturally]"
 """.strip()
 INTENT_CATEGORIES = [
     "new_legal_inquiry",
@@ -63,86 +63,82 @@ def classify_email(email_body: str, sender_info: Optional[Dict] = None) -> str:
     if any(x in heuristic for x in ["dad", "mom", "family", "birthday", "anniversary"]):
         return "personal_family"
 
-    prompt = f"""
-{VOICE_RULES}
-Classify the email into exactly one category from:
-{", ".join(INTENT_CATEGORIES)}
-Return only the category.
-
-Sender: {sender}
-Email body:
-{email_body}
-""".strip()
+    prompt = (
+        VOICE_RULES + "\n"
+        "Classify the email into exactly one category from:\n"
+        + ", ".join(INTENT_CATEGORIES)
+        + "\nReturn only the category.\n\n"
+        "Sender: " + str(sender) + "\n"
+        "Email body:\n" + str(email_body)
+    )
     category = _ask_claude(prompt, "unknown").splitlines()[0].strip().lower()
     return category if category in INTENT_CATEGORIES else "unknown"
 
 def draft_reply(email_body: str, sender_info: Dict, contact_row: Any, intent: str) -> str:
     fallback = "Thank you for your message. James here from Tushaar's office. I have noted this and will share a suitable next step shortly."
-    prompt = f"""
-{VOICE_RULES}
-Write an email reply in 2-4 short lines.
-Intent: {intent}
-Sender info: {sender_info}
-Contact: {getattr(contact_row, 'name', None)}
-Incoming email:
-{email_body}
-""".strip()
+    prompt = (
+        VOICE_RULES + "\n"
+        "Write an email reply in 2-4 short lines.\n"
+        "Intent: " + intent + "\n"
+        "Sender info: " + str(sender_info) + "\n"
+        "Contact: " + str(getattr(contact_row, "name", None)) + "\n"
+        "Incoming email:\n" + str(email_body)
+    )
     return _ask_claude(prompt, fallback)
 
 def draft_meeting_request(contact: Dict, purpose: str, slots: List[str]) -> str:
-    slot_lines = "\n".join(f"- {slot}" for slot in slots[:2])
+    slot_lines = "\n".join("- " + slot for slot in slots[:2])
     fallback = (
-        f"Hi {contact.get('name', 'there')},\n"
-        f"Tushaar would love to find time to discuss {purpose}.\n"
-        f"Would either of these work for you?\n{slot_lines}\n"
+        "Hi " + contact.get("name", "there") + ",\n"
+        "Tushaar would love to find time to discuss " + purpose + ".\n"
+        "Would either of these work for you?\n" + slot_lines + "\n"
         "Looking forward to it"
     )
-    prompt = f"""
-{VOICE_RULES}
-Meeting language rules:
-- Use "Tushaar would love to find time"
-- Use "Would either of these work for you"
-- End with "Looking forward to it"
-- Avoid "Please revert" and "Do the needful"
-
-Draft a concise meeting email.
-Contact: {contact}
-Purpose: {purpose}
-Slots:\n{slot_lines}
-""".strip()
+    prompt = (
+        VOICE_RULES + "\n"
+        "Meeting language rules:\n"
+        "- Use 'Tushaar would love to find time'\n"
+        "- Use 'Would either of these work for you'\n"
+        "- End with 'Looking forward to it'\n"
+        "- Avoid 'Please revert' and 'Do the needful'\n\n"
+        "Draft a concise meeting email.\n"
+        "Contact: " + str(contact) + "\n"
+        "Purpose: " + purpose + "\n"
+        "Slots:\n" + slot_lines
+    )
     return _ask_claude(prompt, fallback)
 
 def generate_morning_brief(data_dict: Dict) -> str:
     fallback = (
-        f"{data_dict.get('day', 'Today')}, {data_dict.get('date', '')}\n"
-        f"COURT: {data_dict.get('court', 'No urgent updates')}\n"
-        f"MEETINGS: {data_dict.get('meetings', 'No meetings')}\n"
-        f"FOLLOW-UP: {data_dict.get('follow_up', 'None')}\n"
-        f"FAMILY: {data_dict.get('family', 'No reminders')}\n"
-        f"PRIORITY: {data_dict.get('priority', 'Review pending drafts')}"
+        data_dict.get("day", "Today") + ", " + data_dict.get("date", "") + "\n"
+        "COURT: " + data_dict.get("court", "No urgent updates") + "\n"
+        "MEETINGS: " + data_dict.get("meetings", "No meetings") + "\n"
+        "FOLLOW-UP: " + data_dict.get("follow_up", "None") + "\n"
+        "FAMILY: " + data_dict.get("family", "No reminders") + "\n"
+        "PRIORITY: " + data_dict.get("priority", "Review pending drafts")
     )
-    prompt = f"""
-{VOICE_RULES}
-Generate a concise morning brief in max 10 lines.
-Data: {data_dict}
-""".strip()
+    prompt = (
+        VOICE_RULES + "\n"
+        "Generate a concise morning brief in max 10 lines.\n"
+        "Data: " + str(data_dict)
+    )
     return _ask_claude(prompt, fallback)
 
 def generate_pre_meeting_brief(contact: Dict, meeting: Dict, research_text: str, history: str) -> str:
+    name = contact.get("name", "Guest")
+    purpose = meeting.get("purpose", "discussion")
     fallback = (
-        f"1) {contact.get('name', 'Guest')} is coming for {meeting.get('purpose', 'discussion')}.
-"
-        f"2) They want: {meeting.get('purpose', 'General catch-up')}.
-"
-        f"3) Research: {research_text or 'No extra public details found.'}\n"
-        f"4) Opening line: Great to see you, shall we begin with your top priority today?"
+        "1) " + name + " is coming for " + purpose + ".\n"
+        "2) They want: " + purpose + ".\n"
+        "3) Research: " + (research_text or "No extra public details found.") + "\n"
+        "4) Opening line: Great to see you, shall we begin with your top priority today?"
     )
-    prompt = f"""
-{VOICE_RULES}
-Create exactly 4 lines for a WhatsApp pre-meeting brief.
-Contact: {contact}
-Meeting: {meeting}
-Research: {research_text}
-History: {history}
-""".strip()
+    prompt = (
+        VOICE_RULES + "\n"
+        "Create exactly 4 lines for a WhatsApp pre-meeting brief.\n"
+        "Contact: " + str(contact) + "\n"
+        "Meeting: " + str(meeting) + "\n"
+        "Research: " + str(research_text) + "\n"
+        "History: " + str(history)
+    )
     return _ask_claude(prompt, fallback)
