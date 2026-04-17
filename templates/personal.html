@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page"><h1>Personal</h1><div id="tasks" class="stack"></div><div id="family" class="stack"></div></section>
+<script>
+fetch('/api/personal').then(r=>r.json()).then(data=>{
+  const tasks=document.getElementById('tasks');
+  const family=document.getElementById('family');
+  tasks.innerHTML=(data.tasks||[]).map(t=>`<button class="card task-btn" data-id="${t.id}">${t.description} <span class="badge ${t.status}">${t.status}</span></button>`).join('')||'<div class="card">No tasks</div>';
+  family.innerHTML=(data.family_events||[]).map(e=>`<div class="card">${e.name} • ${e.event_type} • ${e.event_date}</div>`).join('')||'<div class="card">No family events</div>';
+  document.querySelectorAll('.task-btn').forEach(btn=>btn.addEventListener('click',()=>fetch(`/api/tasks/${btn.dataset.id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'done'})}).then(()=>location.reload())));
+});
+</script>
+{% endblock %}

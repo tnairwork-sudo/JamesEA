@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page"><h1>Matters</h1><div id="matters" class="stack"></div></section>
+<script>
+fetch('/api/matters').then(r=>r.json()).then(rows=>{
+  const el=document.getElementById('matters');
+  el.innerHTML=(rows||[]).map(m=>`<div class="card"><div><span class="dot ${m.status||'green'}"></span>${m.title||''}</div><p>${m.court||''}</p><p>Hearing: ${m.next_hearing_date||'TBD'}</p></div>`).join('')||'<div class="card">No matters yet</div>';
+});
+</script>
+{% endblock %}
