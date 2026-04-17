@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page"><h1>Meetings</h1><div id="meeting-list" class="stack"></div></section>
+<script>
+fetch('/api/meetings').then(r=>r.json()).then(rows=>{
+  const el=document.getElementById('meeting-list');
+  el.innerHTML=(rows||[]).map(r=>`<details class="card"><summary>${r.contact||'Guest'} <span class="badge ${r.status}">${r.status}</span></summary><p>${r.purpose||''}</p><p>${r.email||''}</p><p>${r.notes||''}</p></details>`).join('')||'<div class="card">No upcoming meetings</div>';
+});
+</script>
+{% endblock %}

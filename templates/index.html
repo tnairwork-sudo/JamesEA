@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page">
+  <h1>James</h1>
+  <div class="card" id="brief-card">Loading brief...</div>
+  <div class="row" id="status-row"></div>
+  <div class="card">
+    <h2>Recent Activity</h2>
+    <ul id="activity-list"></ul>
+  </div>
+</section>
+<script>
+async function loadBrief() {
+  const data = await fetch('/api/brief').then(r => r.json());
+  document.getElementById('brief-card').textContent = `Today: ${data.date}`;
+  document.getElementById('status-row').innerHTML = `<div class="pill">Drafts ${data.pending_drafts}</div><div class="pill">Urgent ${data.urgent_items}</div>`;
+  document.getElementById('activity-list').innerHTML = (data.meetings || []).map(m => `<li>${m.contact || 'Guest'} • ${m.purpose || 'Meeting'} • ${m.status}</li>`).join('') || '<li>No recent activity.</li>';
+}
+loadBrief();
+</script>
+{% endblock %}
