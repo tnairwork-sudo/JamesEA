@@ -26,7 +26,7 @@ James is a web-based AI Executive Assistant built with Flask + SQLite for email 
    python3 app.py
    ```
 
-On startup, James opens `http://localhost:5000` in Chrome (fallback to default browser).
+On startup, James opens `http://localhost:5001` in Chrome (fallback to default browser).
 
 ## API Endpoints
 
