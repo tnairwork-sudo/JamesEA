@@ -1,5 +1,5 @@
 import os
-from typing import Any
+from typing import Any, Dict, List, Optional
 
 try:
     from anthropic import Anthropic
@@ -31,13 +31,11 @@ INTENT_CATEGORIES = [
     "unknown",
 ]
 
-
 def _client() -> Any:
     api_key = os.getenv("ANTHROPIC_API_KEY", "")
     if not api_key or Anthropic is None:
         return None
     return Anthropic(api_key=api_key)
-
 
 def _ask_claude(prompt: str, fallback: str) -> str:
     client = _client()
@@ -55,8 +53,7 @@ def _ask_claude(prompt: str, fallback: str) -> str:
     except Exception:
         return fallback
 
-
-def classify_email(email_body: str, sender_info: dict | None = None) -> str:
+def classify_email(email_body: str, sender_info: Optional[Dict] = None) -> str:
     sender = sender_info or {}
     heuristic = (email_body or "").lower()
     if any(x in heuristic for x in ["hearing", "court", "counsel", "mentioning"]):
@@ -79,8 +76,7 @@ Email body:
     category = _ask_claude(prompt, "unknown").splitlines()[0].strip().lower()
     return category if category in INTENT_CATEGORIES else "unknown"
 
-
-def draft_reply(email_body: str, sender_info: dict, contact_row: Any, intent: str) -> str:
+def draft_reply(email_body: str, sender_info: Dict, contact_row: Any, intent: str) -> str:
     fallback = "Thank you for your message. James here from Tushaar's office. I have noted this and will share a suitable next step shortly."
     prompt = f"""
 {VOICE_RULES}
@@ -93,8 +89,7 @@ Incoming email:
 """.strip()
     return _ask_claude(prompt, fallback)
 
-
-def draft_meeting_request(contact: dict, purpose: str, slots: list[str]) -> str:
+def draft_meeting_request(contact: Dict, purpose: str, slots: List[str]) -> str:
     slot_lines = "\n".join(f"- {slot}" for slot in slots[:2])
     fallback = (
         f"Hi {contact.get('name', 'there')},\n"
@@ -117,8 +112,7 @@ Slots:\n{slot_lines}
 """.strip()
     return _ask_claude(prompt, fallback)
 
-
-def generate_morning_brief(data_dict: dict) -> str:
+def generate_morning_brief(data_dict: Dict) -> str:
     fallback = (
         f"{data_dict.get('day', 'Today')}, {data_dict.get('date', '')}\n"
         f"COURT: {data_dict.get('court', 'No urgent updates')}\n"
@@ -134,11 +128,12 @@ Data: {data_dict}
 """.strip()
     return _ask_claude(prompt, fallback)
 
-
-def generate_pre_meeting_brief(contact: dict, meeting: dict, research_text: str, history: str) -> str:
+def generate_pre_meeting_brief(contact: Dict, meeting: Dict, research_text: str, history: str) -> str:
     fallback = (
-        f"1) {contact.get('name', 'Guest')} is coming for {meeting.get('purpose', 'discussion')}.\n"
-        f"2) They want: {meeting.get('purpose', 'General catch-up')}.\n"
+        f"1) {contact.get('name', 'Guest')} is coming for {meeting.get('purpose', 'discussion')}.
+"
+        f"2) They want: {meeting.get('purpose', 'General catch-up')}.
+"
         f"3) Research: {research_text or 'No extra public details found.'}\n"
         f"4) Opening line: Great to see you, shall we begin with your top priority today?"
     )
