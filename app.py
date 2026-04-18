@@ -36,7 +36,7 @@ def create_app() -> Flask:
 def _open_browser() -> None:
     if os.getenv("AUTO_OPEN_BROWSER", "1") != "1":
         return
-    url = "http://localhost:5000"
+    url = "http://localhost:5001"
     try:
         webbrowser.get("google-chrome").open_new(url)
     except Exception:
