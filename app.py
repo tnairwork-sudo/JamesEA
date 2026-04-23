@@ -36,7 +36,9 @@ def create_app() -> Flask:
 def _open_browser() -> None:
     if os.getenv("AUTO_OPEN_BROWSER", "1") != "1":
         return
-    url = "http://localhost:5001"
+    if os.getenv("RAILWAY_ENVIRONMENT"):
+        return
+    url = f"http://localhost:{os.getenv('PORT', '5001')}"
     try:
         webbrowser.get("google-chrome").open_new(url)
     except Exception:
@@ -47,4 +49,4 @@ app = create_app()
 
 if __name__ == "__main__":
     threading.Timer(1.2, _open_browser).start()
-    app.run(host="0.0.0.0", port=5001, debug=False)
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5001)), debug=False)
