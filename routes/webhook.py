@@ -1,6 +1,7 @@
 import os
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, Response, request
+from twilio.twiml.messaging_response import MessagingResponse
 
 from database import db
 from database.models import MessageLog
@@ -19,9 +20,11 @@ def whatsapp_webhook():
     db.session.commit()
 
     result = parse_command(body=body, from_number=sender, tushaar_number=expected)
-    return jsonify({"status": "ok", "result": result})
+    resp = MessagingResponse()
+    resp.message(result or "Command received.")
+    return Response(str(resp), mimetype="application/xml")
 
 
 @bp.post("/gmail")
 def gmail_webhook():
-    return jsonify({"status": "ok"})
+    return Response("", status=200)
